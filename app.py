@@ -2,6 +2,7 @@ class Player:
     """
     Class to represent a player and his location
     """
+
     def __init__(self, name, nickname):
         self.name = name
         self.nickname = nickname
@@ -32,6 +33,7 @@ class Edge:
     """
     Class to represent an edge between nodes along with its distance.
     """
+
     def __init__(self, node, distance):
         self.node = node
         self.distance = distance
@@ -41,6 +43,7 @@ class Node:
     """
     Class to represent node and his connections.
     """
+
     def __init__(self, name, description):
         self.name = name
         self.description = description
@@ -177,6 +180,9 @@ def main():
         print("Where do you want to go")
         print(player.current_location.get_choices())
         choice = input("Enter your choice: ").upper()
+        if choice == "" or len(choice) > 1:
+            print("\nYou can't go there. Choose another way.")
+            continue
 
         index = ord(choice) - 65
         if player.current_location.get_node(index):
@@ -185,7 +191,8 @@ def main():
             print("\nYou can't go there. Choose another way.")
 
         if player.current_location == ending_location:
-            print(f'\nYou found the treasure! You traveled {player.distance_traveled} km.')
+            print(
+                f'\nYou found the treasure! You traveled {player.distance_traveled} km.')
             break
 
 
