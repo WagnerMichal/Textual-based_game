@@ -6,6 +6,7 @@ class Player:
         self.name = name
         self.nickname = nickname
         self.current_location = None
+        self.distance_traveled = 0
 
     def __str__(self):
         """
@@ -16,12 +17,24 @@ class Player:
 
     def move_to_node(self, destination):
         """
-        Changes players current location to his selected destination
+        Changes players current location to his selected destination.
+        Counts the distance traveled to each node.
 
         Args:
             destination (int): Converted index of location in array of available nodes 
         """
-        self.current_location = self.current_location.connected_nodes[destination]
+        edge = self.current_location.connected_nodes[destination]
+        self.current_location = edge.node
+        self.distance_traveled += edge.distance
+
+
+class Edge:
+    """
+    Class to represent an edge between nodes along with its distance.
+    """
+    def __init__(self, node, distance):
+        self.node = node
+        self.distance = distance
 
 
 class Node:
@@ -33,30 +46,34 @@ class Node:
         self.description = description
         self.connected_nodes = []
 
-    def add_connection(self, node):
+    def add_connection(self, node, distance):
         """
-        Creates connection between two nodes 
+        Creates connection between two nodes and holds information about distance
 
         Args:
             node (object): Node that will be connected to our current node
+            distance (int): distance between nodes
         """
-        if node not in self.connected_nodes:
-            self.connected_nodes.append(node)
+        edge = Edge(node, distance)
+        if edge not in self.connected_nodes:
+            self.connected_nodes.append(edge)
 
-    def add_two_way_connection(self, node):
+    def add_two_way_connection(self, node, distance):
         """
-        Creates two way connection between two nodes
+        Creates two way connection between two nodes and holds information about distance
 
         Args:
             node (object): Node that will be connected to our current node
+            distance (int): distance between nodes
         """
-        if node not in self.connected_nodes:
-            self.connected_nodes.append(node)
-            node.connected_nodes.append(self)
+        edge = Edge(node, distance)
+        if edge not in self.connected_nodes:
+            self.connected_nodes.append(edge)
+            edge.node.connected_nodes.append(Edge(self, distance))
 
     def get_choices(self):
         """
-        Creates a string with available paths (nodes) for current node.
+        Creates a string with available paths (nodes) for current node and distance.
         Assigns letter computed by using index of node.
 
         Returns:
@@ -64,7 +81,7 @@ class Node:
         """
         string = ''
         for i, choice in enumerate(self.connected_nodes):
-            string += f"{chr(65 + i)} - {choice.name}\n"
+            string += f"{chr(65 + i)} - {choice.node.name} (Distance: {choice.distance} km)\n"
         return string
 
     def get_node(self, choice):
@@ -77,7 +94,7 @@ class Node:
             object: Node on chosen index.
         """
         if choice < len(self.connected_nodes):
-            return self.connected_nodes[choice]
+            return self.connected_nodes[choice].node
 
 
 def create_world():
@@ -117,26 +134,26 @@ def create_world():
     treasure = Node("Treasure",
                     "You have discovered a hidden chamber filled with gold and jewels.")
 
-    beach.add_connection(jungle)
-    beach.add_connection(cave_entrance)
-    jungle.add_connection(campsite)
-    jungle.add_two_way_connection(tunnel)
-    cave_entrance.add_connection(underground_lake)
-    cave_entrance.add_connection(tunnel)
-    underground_lake.add_connection(spider_lair)
-    underground_lake.add_connection(catacombs)
-    catacombs.add_two_way_connection(crystal_cave)
-    catacombs.add_two_way_connection(cavern)
-    cavern.add_two_way_connection(tunnel)
-    cavern.add_two_way_connection(labyrinth)
-    cavern.add_connection(riverside)
-    campsite.add_connection(waterfall)
-    campsite.add_two_way_connection(cliffs)
-    waterfall.add_connection(labyrinth)
-    labyrinth.add_connection(cliffs)
-    labyrinth.add_connection(riverside)
-    riverside.add_connection(ruins)
-    ruins.add_connection(treasure)
+    beach.add_connection(jungle, 2)
+    beach.add_connection(cave_entrance, 1)
+    jungle.add_connection(campsite, 3)
+    jungle.add_two_way_connection(tunnel, 2)
+    cave_entrance.add_connection(underground_lake, 4)
+    cave_entrance.add_connection(tunnel, 5)
+    underground_lake.add_connection(spider_lair, 2)
+    underground_lake.add_connection(catacombs, 2)
+    catacombs.add_two_way_connection(crystal_cave, 1)
+    catacombs.add_two_way_connection(cavern, 4)
+    cavern.add_two_way_connection(tunnel, 2)
+    cavern.add_two_way_connection(labyrinth, 3)
+    cavern.add_connection(riverside, 5)
+    campsite.add_connection(waterfall, 3)
+    campsite.add_two_way_connection(cliffs, 2)
+    waterfall.add_connection(labyrinth, 4)
+    labyrinth.add_connection(cliffs, 10)
+    labyrinth.add_connection(riverside, 7)
+    riverside.add_connection(ruins, 2)
+    ruins.add_connection(treasure, 1)
 
     return beach, treasure
 
@@ -168,7 +185,7 @@ def main():
             print("\nYou can't go there. Choose another way.")
 
         if player.current_location == ending_location:
-            print('\nYou found the treasure!.')
+            print(f'\nYou found the treasure! You traveled {player.distance_traveled} km.')
             break
 
 
